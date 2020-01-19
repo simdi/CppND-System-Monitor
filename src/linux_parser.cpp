@@ -69,27 +69,60 @@ vector<int> LinuxParser::Pids() {
 }
 
 // TODO: Read and return the system memory utilization
-float LinuxParser::MemoryUtilization() { 
+// float LinuxParser::MemoryUtilization() { 
+//   string mem_total = "MemTotal:";
+//   string mem_free = "MemFree:";
+//   float total = 0.0;
+//   string line, name;
+//   float size;
+  
+//   int total_memory = 0;
+//   int free_memory = 0;
+  
+//   std::ifstream filestream(kProcDirectory + kMeminfoFilename);
+//   if (filestream.is_open()) {
+//     while (filestream >> name >> size) {
+//       if (name.compare(mem_total) == 0) {
+//         total_memory = size;
+//       }
+//       if (name.compare(mem_free) == 0) {
+//         free_memory = size;
+//       }
+//     }
+//    	total =  ((total_memory - free_memory) / total_memory);
+//   }
+//   return total;
+// }
+
+float LinuxParser::MemoryUtilization() {
   string mem_total = "MemTotal:";
   string mem_free = "MemFree:";
   float total = 0.0;
-  string line, name;
-  float size;
-  
+  string line;
+  int size;
+
   int total_memory = 0;
   int free_memory = 0;
-  
+
   std::ifstream filestream(kProcDirectory + kMeminfoFilename);
   if (filestream.is_open()) {
-    while (filestream >> name >> size) {
-      if (name.compare(mem_total) == 0) {
-        total_memory = size;
+    while (getline(filestream, line)) {
+      if (line.compare(0, mem_total.size(), mem_total) == 0) {
+        std::istringstream buf(line);
+        std::istream_iterator<string> beg(buf), end;
+        vector<string> values(beg, end);
+        total_memory = stof(values[1]);
       }
-      if (name.compare(mem_free) == 0) {
-        free_memory = size;
+
+      if (line.compare(0, mem_free.size(), mem_free) == 0) {
+        std::istringstream buf(line);
+        std::istream_iterator<string> beg(buf), end;
+        vector<string> values(beg, end);
+        free_memory = stof(values[1]);
       }
     }
-   	total =  ((total_memory - free_memory) / total_memory);
+
+    total = ( total_memory - free_memory / (1.0 * total_memory));
   }
   return total;
 }
