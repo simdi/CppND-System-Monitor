@@ -94,38 +94,78 @@ vector<int> LinuxParser::Pids() {
 //   return total;
 // }
 
+// float LinuxParser::MemoryUtilization() {
+//   string mem_total = "MemTotal:";
+//   string mem_free = "MemFree:";
+//   float total = 0.0;
+//   string line;
+//   int size;
+
+//   int total_memory = 0;
+//   int free_memory = 0;
+
+//   std::ifstream filestream(kProcDirectory + kMeminfoFilename);
+//   if (filestream.is_open()) {
+//     while (getline(filestream, line)) {
+//       if (line.compare(0, mem_total.size(), mem_total) == 0) {
+//         std::istringstream buf(line);
+//         std::istream_iterator<string> beg(buf), end;
+//         vector<string> values(beg, end);
+//         total_memory = stof(values[1]);
+//       }
+
+//       if (line.compare(0, mem_free.size(), mem_free) == 0) {
+//         std::istringstream buf(line);
+//         std::istream_iterator<string> beg(buf), end;
+//         vector<string> values(beg, end);
+//         free_memory = stof(values[1]);
+//       }
+//     }
+
+//     total = ( total_memory - free_memory / (1.0 * total_memory));
+//   }
+//   return total;
+// }
+
 float LinuxParser::MemoryUtilization() {
+  string line;
   string mem_total = "MemTotal:";
   string mem_free = "MemFree:";
-  float total = 0.0;
-  string line;
-  int size;
+  string mem_buffers = "Buffers:";
 
-  int total_memory = 0;
-  int free_memory = 0;
-
-  std::ifstream filestream(kProcDirectory + kMeminfoFilename);
-  if (filestream.is_open()) {
-    while (getline(filestream, line)) {
-      if (line.compare(0, mem_total.size(), mem_total) == 0) {
-        std::istringstream buf(line);
-        std::istream_iterator<string> beg(buf), end;
-        vector<string> values(beg, end);
-        total_memory = stof(values[1]);
-      }
-
-      if (line.compare(0, mem_free.size(), mem_free) == 0) {
-        std::istringstream buf(line);
-        std::istream_iterator<string> beg(buf), end;
-        vector<string> values(beg, end);
-        free_memory = stof(values[1]);
-      }
+  string value;
+  // int result;
+//   string path = kProcDirectory + kMeminfoFilename;
+//   std::ifstream stream;
+  std::ifstream stream(kProcDirectory + kMeminfoFilename);
+  float total_memory = 0;
+  float free_memory = 0;
+  float buffers = 0;
+  while (std::getline(stream, line)) {
+    if (total_memory != 0 && free_memory != 0) break;
+    if (line.compare(0, mem_total.size(), mem_total) == 0) {
+      std::istringstream buf(line);
+      std::istream_iterator<string> beg(buf), end;
+      vector<string> values(beg, end);
+      total_memory = stof(values[1]);
     }
-
-    total = ( total_memory - free_memory / (1.0 * total_memory));
+    if (line.compare(0, mem_free.size(), mem_free) == 0) {
+      std::istringstream buf(line);
+      std::istream_iterator<string> beg(buf), end;
+      vector<string> values(beg, end);
+      free_memory = stof(values[1]);
+    }
+    if (line.compare(0, mem_buffers.size(), mem_buffers) == 0) {
+      std::istringstream buf(line);
+      std::istream_iterator<string> beg(buf), end;
+      vector<string> values(beg, end);
+      buffers = stof(values[1]);
+    }
   }
-  return total;
+
+  return float(1.0 - (free_memory / (total_memory - buffers)));
 }
+
 
 // TODO: Read and return the system uptime
 long LinuxParser::UpTime() {
