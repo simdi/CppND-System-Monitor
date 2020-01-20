@@ -263,14 +263,24 @@ string LinuxParser::Uid(int pid) {
   std::string line;
   std::string id = to_string(pid);
   std::ifstream file(kPasswordPath);
+  // if(file) {
+  //   while(getline(file, line)) {
+  //     std::string delimiter = ":x:";
+  //     size_t initPos = 0;
+  //     size_t delimiterPos = line.find(delimiter);
+  //     string userId = line.substr(delimiterPos + 3, id.size());
+  //     if (userId.compare(id) == 0) {
+  //       uid = line.substr(initPos, delimiterPos);
+  //     }
+  //   }
+  // }
   if(file) {
+    std::string name = ("x:" + LinuxParser::User(pid));
     while(getline(file, line)) {
-      std::string delimiter = ":x:";
-      size_t initPos = 0;
-      size_t delimiterPos = line.find(delimiter);
-      string userId = line.substr(delimiterPos + 3, id.size());
-      if (userId.compare(id) == 0) {
-        uid = line.substr(initPos, delimiterPos);
+      if (line.find(name) != std::string::npos) {
+        int position = line.find(":");
+        uid = line.substr(0, position);
+        return uid.substr(0, 5);
       }
     }
   }
